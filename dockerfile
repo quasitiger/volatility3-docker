@@ -44,7 +44,10 @@ RUN apk add --no-cache \
 
 # Install yara-python
 WORKDIR /usr/local/lib
-COPY --chown=unprivileged:ci /stage/yara-python yara-python
+#COPY --chown=unprivileged:ci /stage/yara-python yara-python
+RUN git clone https://github.com/VirusTotal/yara-python /usr/local/lib/yara-python
+RUN git clone https://github.com/VirusTotal/yara.git /usr/local/lib/yara-python/yara
+
 WORKDIR /usr/local/lib/yara-python
 RUN python3 setup.py install && \
     find . -type d -exec chmod 0755 {} \; && \
@@ -54,6 +57,8 @@ RUN python3 setup.py install && \
 WORKDIR /usr/local/lib
 RUN git clone --branch="${GIT_TAG_VOLATILITY3}" --depth=1 --single-branch https://github.com/volatilityfoundation/volatility3.git
 WORKDIR /usr/local/lib/volatility3
+
+# 분기처리
 RUN if [ "${GIT_TAG_VOLATILITY3}" = "develop" ]; then \
         python3 -m pip install --break-system-packages build && \
         python3 -m build; \
@@ -76,10 +81,24 @@ RUN apk del stage
 
 # Copy symbols
 WORKDIR /usr/local/lib/volatility3/volatility3/symbols
-COPY /stage/linux.zip linux.zip
-COPY /stage/mac.zip mac.zip
-COPY /stage/windows.zip windows.zip
-COPY /stage/symbols/symbols/windows windows
+# COPY /stage/linux.zip linux.zip
+# COPY /stage/mac.zip mac.zip
+# COPY /stage/windows.zip windows.zip
+# COPY /stage/symbols/symbols/windows windows
+
+# RUN wget -O /usr/local/lib/volatility3/volatility3/symbols/windows.zip https://downloads.volatilityfoundation.org/volatility3/symbols/windows.zip && \
+#     wget -O /usr/local/lib/volatility3/volatility3/symbols/mac.zip https://downloads.volatilityfoundation.org/volatility3/symbols/mac.zip && \
+#     wget -O /usr/local/lib/volatility3/volatility3/symbols/linux.zip https://downloads.volatilityfoundation.org/volatility3/symbols/linux.zip && \
+#     unzip linux.zip && unzip mac.zip && unzip windows.zip
+
+# I don't think it's a good idea to download PDB files when building the Docker container, because Volatility3 downloads the necessary OS PDB files dynamically during analysis.
+# RUN wget -O ./windows.zip https://downloads.volatilityfoundation.org/volatility3/symbols/windows.zip && \
+# wget -O ./mac.zip https://downloads.volatilityfoundation.org/volatility3/symbols/mac.zip && \
+# wget -O ./linux.zip https://downloads.volatilityfoundation.org/volatility3/symbols/linux.zip && \
+# unzip linux.zip && unzip mac.zip && unzip windows.zip
+
+
+
 RUN find . -type d -exec chmod 0777 {} \; && \
     find . -type f -exec chmod 0666 {} \; && \
     find /usr/lib/python3* -type d -name symbols -exec chmod 0777 {} \;
@@ -94,15 +113,20 @@ RUN volatility3 -vvv frameworkinfo.FrameworkInfo && \
 COPY --chown=root:root assets/aliases.sh /etc/profile.d/
 
 # Entry and run
-WORKDIR /usr/local
+# WORKDIR /usr/local
+# USER unprivileged
+#ENTRYPOINT ["/usr/bin/dumb-init", "--", "volatility3"]
+#CMD ["--help"]
+
+RUN mkdir /image && chmod 777 /image
+WORKDIR /
 USER unprivileged
-ENTRYPOINT ["/usr/bin/dumb-init", "--", "volatility3"]
-CMD ["--help"]
+ENTRYPOINT ["/bin/sh"]
 
 # Labels
 ARG PRODUCT_AUTHOR=sk4la <quasitiger@gmail.com>
 ARG PRODUCT_REPOSITORY=https://github.com/quasitiger/volatility3-docker
-ARG PRODUCT_BUILD_DATE="$(date +%F)"
+ARG PRODUCT_BUILD_DATE="2025-04-14"
 #ARG PRODUCT_BUILD_COMMIT=023ac2479be49559dd7350df81ffd4d7aaebad1c
 
 LABEL image.author="${PRODUCT_AUTHOR}" \
