@@ -1,4 +1,4 @@
-# Volatility 2 (Alpine 기반 Docker 이미지)
+# Volatility 3 (Alpine 기반 Docker 이미지)
 
 경량화된 Alpine 리눅스 기반의 [Volatility 3](https://github.com/volatilityfoundation/volatility3) Docker 이미지 입니다.
 
