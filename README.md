@@ -6,7 +6,7 @@
 
 ## 🧠 주요 기능
 
-- ✅ Volatility 3 최신신 버전
+- ✅ Volatility 3 최신 버전
 - ✅ community 플러그인 기본 탑재
 - ✅ Alpine 기반으로 이미지 크기 최소화
 - ✅ `dumb-init`을 통한 안정적 실행 (PID 1 문제 해결)
@@ -17,8 +17,9 @@
 ## 🚀 빠른 시작
 
 ```bash
-docker run --rm -v $(pwd)/mem:/image quasitiger/volatility3 -f /data/memdump.raw windows.info
-docker run -it --entrypoint /bin/sh quasitiger/volatility3
+docker pull quasitiger/volatility3:alpine
+docker run -it -v {image_path}:/image quasitiger/volatility3:alpine
+vol --save-config 'config.json' -f /image/image_name windows.info
 ```
 
 ---
